@@ -36,7 +36,7 @@ function OrderHistory() {
         <select
           value={filterISIN}
           onChange={e => setFilterISIN(e.target.value)}
-          className="bg-gray-800 text-white text-sm rounded px-3 py-1.5 border border-gray-700 focus:outline-none focus:border-indigo-500 w-full"
+          className="bg-gray-800 text-white text-sm rounded px-2 py-1.5 border border-gray-700 focus:outline-none focus:border-indigo-500 w-full"
         >
           <option value="all">Tutti gli ETF</option>
           {etfOptions.map(([isin, name]) => (
@@ -51,11 +51,11 @@ function OrderHistory() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-gray-800 text-gray-400 text-left">
-              <th className="px-3 py-2 font-medium">Data</th>
-              <th className="px-3 py-2 font-medium">ETF</th>
-              <th className="px-3 py-2 font-medium text-right">Quote</th>
-              <th className="px-3 py-2 font-medium text-right">Prezzo</th>
-              <th className="px-3 py-2 font-medium text-right">Importo</th>
+              <th className="px-2 py-2 font-medium">Data</th>
+              <th className="px-2 py-2 font-medium">ETF</th>
+              <th className="px-2 py-2 font-medium text-right">Quote</th>
+              <th className="px-2 py-2 font-medium text-right">Prezzo</th>
+              <th className="px-2 py-2 font-medium text-right">Importo</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-800">
@@ -69,16 +69,16 @@ function OrderHistory() {
 
               return (
                 <tr key={i} className="bg-gray-900 hover:bg-gray-800 transition-colors">
-                  <td className="px-3 py-2 text-gray-400 whitespace-nowrap">{date}</td>
-                  <td className="px-3 py-2">
-                    <div className="text-white font-medium leading-tight">{t.name}</div>
+                  <td className="px-2 py-2 text-gray-400 whitespace-nowrap">{date}</td>
+                  <td className="px-2 py-2 min-w-0">
+                    <div className="text-white font-medium leading-tight truncate max-w-30">{t.name}</div>
                     <div className="text-gray-500 text-xs">{t.symbol}</div>
                   </td>
-                  <td className="px-3 py-2 text-right text-white">{shares.toFixed(4)}</td>
-                  <td className="px-3 py-2 text-right text-white">
+                  <td className="px-2 py-2 text-right text-white">{shares.toFixed(4)}</td>
+                  <td className="px-2 py-2 text-right text-white">
                     {price !== null ? `€${price.toFixed(2)}` : '—'}
                   </td>
-                  <td className="px-3 py-2 text-right font-medium text-white">€{amount.toFixed(2)}</td>
+                  <td className="px-2 py-2 text-right font-medium text-white">€{amount.toFixed(2)}</td>
                 </tr>
               )
             })}
