@@ -1,7 +1,8 @@
 const TABS = [
   { id: 'portfolio', label: 'Portfolio', icon: '📊' },
   { id: 'ordini',    label: 'Ordini',    icon: '📋' },
-  { id: 'grafici',   label: 'Grafici',   icon: '📈' },
+  { id: 'analisi',   label: 'Analisi',   icon: '📈' },
+  { id: 'strategia', label: 'Strategia', icon: '🎯' },
 ]
 
 function TabBar({ active, onChange }) {

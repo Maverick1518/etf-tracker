@@ -1,4 +1,4 @@
-const COLORS = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#e9d5ff']
+const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6']
 
 function PieChart({ data }) {
   const total = data.reduce((s, d) => s + d.value, 0)
@@ -16,8 +16,8 @@ function PieChart({ data }) {
     const y2 = cy + r * Math.sin(toRad(angle))
     const large = pct > 0.5 ? 1 : 0
     const mid = start + (pct * 360) / 2
-    const lx = cx + (r + 20) * Math.cos(toRad(mid))
-    const ly = cy + (r + 20) * Math.sin(toRad(mid))
+    const lx = cx + r * 0.62 * Math.cos(toRad(mid))
+    const ly = cy + r * 0.62 * Math.sin(toRad(mid))
     return { x1, y1, x2, y2, large, cx, cy, r, color: COLORS[i], pct, lx, ly, name: d.name, value: d.value }
   })
 
@@ -30,8 +30,8 @@ function PieChart({ data }) {
             fill={s.color}
             opacity={0.9}
           />
-          {s.pct > 0.05 && (
-            <text x={s.lx} y={s.ly} textAnchor="middle" fontSize="10" fill="white">
+          {s.pct > 0.08 && (
+            <text x={s.lx} y={s.ly} textAnchor="middle" fontSize="11" fontWeight="600" fill="white">
               {(s.pct * 100).toFixed(0)}%
             </text>
           )}
@@ -42,7 +42,7 @@ function PieChart({ data }) {
 }
 
 function AllocationChart({ portfolio, prices }) {
-  const COLORS_LEG = ['#6366f1', '#8b5cf6', '#a78bfa', '#c4b5fd', '#e9d5ff']
+  const COLORS_LEG = COLORS
   const data = portfolio.map(etf => {
     const p = prices[etf.isin]
     const value = p ? p.price * etf.shares : etf.invested

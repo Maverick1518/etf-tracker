@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import ImportCSV from './ImportCSV'
 import { usePrices } from '../hooks/usePrices'
-import AllocationChart from './AllocationChart'
 import TabBar from './TabBar'
 import OrderHistory from './OrderHistory'
-import PortfolioChart from './PortfolioChart'
+import AnalysisTab from './AnalysisTab'
+import StrategyTab from './StrategyTab'
 import { calcPMC, loadFromSupabase } from '../utils/parseCSV'
 
 function PnlBadge({ value, percent }) {
@@ -139,12 +139,14 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Tab: Grafici */}
-        {activeTab === 'grafici' && (
-          <div className="space-y-4">
-            <PortfolioChart />
-            {portfolio.length > 0 && <AllocationChart portfolio={portfolio} prices={prices} />}
-          </div>
+        {/* Tab: Analisi */}
+        {activeTab === 'analisi' && (
+          <AnalysisTab portfolio={portfolio} prices={prices} />
+        )}
+
+        {/* Tab: Strategia */}
+        {activeTab === 'strategia' && (
+          <StrategyTab portfolio={portfolio} prices={prices} />
         )}
       </div>
 
