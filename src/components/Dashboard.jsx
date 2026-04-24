@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import ImportCSV from './ImportCSV'
 import { usePrices } from '../hooks/usePrices'
+import AllocationChart from './AllocationChart'
 
 function PnlBadge({ value, percent }) {
   const positive = value >= 0
@@ -47,7 +48,6 @@ function Dashboard() {
         </p>
       )}
 
-      {/* KPI totali */}
       {portfolio.length > 0 && (
         <div className="bg-gray-900 rounded-lg p-4 mb-4 flex gap-6">
           <div>
@@ -104,6 +104,8 @@ function Dashboard() {
           })}
         </div>
       )}
+
+      {portfolio.length > 0 && <AllocationChart portfolio={portfolio} prices={prices} />}
     </div>
   )
 }
