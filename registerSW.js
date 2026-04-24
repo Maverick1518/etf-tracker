@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/etf-tracker/sw.js', { scope: '/etf-tracker/' })})}
