@@ -162,6 +162,7 @@ function Dashboard() {
   return (
     <div
       className="min-h-screen bg-gray-950 text-white pb-16"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
@@ -192,7 +193,7 @@ function Dashboard() {
 
       {/* Swipe viewport — overflow-x-hidden clips sliding content */}
       <div className="overflow-x-hidden">
-        <div ref={contentRef} className="max-w-2xl mx-auto px-4 pt-2 pb-4">
+        <div ref={contentRef} className="max-w-2xl mx-auto px-4 pt-0 pb-4">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">ETF Portfolio Tracker</h1>
             <button
