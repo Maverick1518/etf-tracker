@@ -25,11 +25,14 @@ const SWIPE_THRESHOLD = 50;
 const GESTURE_LOCK = 10;
 
 function Dashboard() {
-  const [portfolio, setPortfolio] = useState([]);
+  const [portfolio, setPortfolio] = useState(() => {
+    const saved = localStorage.getItem("etf_portfolio");
+    return saved ? JSON.parse(saved) : [];
+  });
   const [activeTab, setActiveTab] = useState("portfolio");
   const { prices, loading, lastUpdate, refresh } = usePrices(portfolio);
   const [pullY, setPullY] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const contentRef = useRef(null);
   const touchStartX = useRef(null);
@@ -38,24 +41,16 @@ function Dashboard() {
   const canPull = useRef(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("etf_portfolio");
-    if (saved) {
-      setPortfolio(JSON.parse(saved));
-    } else {
-      loadFromSupabase().then((trades) => {
-        if (trades && trades.length > 0) {
-          const p = calcPMC(trades);
-          localStorage.setItem("etf_trades", JSON.stringify(trades));
-          localStorage.setItem("etf_portfolio", JSON.stringify(p));
-          setPortfolio(p);
-        }
-      });
-    }
+    if (localStorage.getItem("etf_portfolio")) return;
+    loadFromSupabase().then((trades) => {
+      if (trades && trades.length > 0) {
+        const p = calcPMC(trades);
+        localStorage.setItem("etf_trades", JSON.stringify(trades));
+        localStorage.setItem("etf_portfolio", JSON.stringify(p));
+        setPortfolio(p);
+      }
+    });
   }, []);
-
-  useEffect(() => {
-    if (!loading) setRefreshing(false);
-  }, [loading]);
 
   const totalInvested = portfolio.reduce((s, e) => s + e.invested, 0);
   const totalCurrent = portfolio.reduce((s, e) => {
@@ -148,7 +143,7 @@ function Dashboard() {
       }
     } else if (gesture.current === "pull") {
       if (pullY >= PULL_THRESHOLD && !loading) {
-        setRefreshing(true);
+        setIsRefreshing(true);
         refresh();
       }
       setPullY(0);
@@ -160,9 +155,10 @@ function Dashboard() {
     canPull.current = false;
   };
 
+  const spinning = isRefreshing && loading;
   const pullProgress = Math.min(pullY / PULL_THRESHOLD, 1);
-  const indicatorHeight = refreshing ? 48 : Math.min(pullY * 0.5, 48);
-  const showIndicator = pullY > 0 || refreshing;
+  const indicatorHeight = spinning ? 48 : Math.min(pullY * 0.5, 48);
+  const showIndicator = pullY > 0 || spinning;
 
   return (
     <div
@@ -185,9 +181,9 @@ function Dashboard() {
         }}
       >
         <svg
-          className={`w-6 h-6 text-gray-400 ${refreshing ? "animate-spin" : ""}`}
+          className={`w-6 h-6 text-gray-400 ${spinning ? "animate-spin" : ""}`}
           style={
-            !refreshing ? { transform: `rotate(${pullProgress * 360}deg)` } : {}
+            !spinning ? { transform: `rotate(${pullProgress * 360}deg)` } : {}
           }
           fill="none"
           viewBox="0 0 24 24"
@@ -208,7 +204,7 @@ function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">ETF Portfolio Tracker</h1>
             <button
-              onClick={refresh}
+              onClick={() => { setIsRefreshing(false); refresh(); }}
               disabled={loading}
               className="text-sm px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
             >
