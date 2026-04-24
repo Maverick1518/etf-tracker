@@ -167,6 +167,7 @@ function Dashboard() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      <div className="fixed top-0 left-0 right-0 bg-gray-950 z-50" style={{ height: 'env(safe-area-inset-top)' }} />
       {/* Pull-to-refresh indicator */}
       <div
         className="flex items-center justify-center overflow-hidden"
