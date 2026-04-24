@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react'
 import ImportCSV from './ImportCSV'
 import { usePrices } from '../hooks/usePrices'
 import AllocationChart from './AllocationChart'
+import TabBar from './TabBar'
+import OrderHistory from './OrderHistory'
+import PortfolioChart from './PortfolioChart'
 
 function PnlBadge({ value, percent }) {
   const positive = value >= 0
@@ -14,6 +17,7 @@ function PnlBadge({ value, percent }) {
 
 function Dashboard() {
   const [portfolio, setPortfolio] = useState([])
+  const [activeTab, setActiveTab] = useState('portfolio')
   const { prices, loading, lastUpdate, refresh } = usePrices(portfolio)
 
   useEffect(() => {
@@ -30,82 +34,105 @@ function Dashboard() {
   const totalPnlPct = totalInvested ? (totalPnl / totalInvested) * 100 : 0
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-4 max-w-2xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">ETF Portfolio Tracker</h1>
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="text-sm px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
-        >
-          {loading ? 'Aggiornamento...' : '↻ Refresh'}
-        </button>
-      </div>
-
-      {lastUpdate && (
-        <p className="text-xs text-gray-500 mb-4">
-          Aggiornato: {lastUpdate.toLocaleTimeString('it-IT')}
-        </p>
-      )}
-
-      {portfolio.length > 0 && (
-        <div className="bg-gray-900 rounded-lg p-4 mb-4 flex gap-6">
-          <div>
-            <div className="text-xs text-gray-400">Investito</div>
-            <div className="font-semibold">€{totalInvested.toFixed(2)}</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-400">Valore attuale</div>
-            <div className="font-semibold">€{totalCurrent.toFixed(2)}</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-400">P&L totale</div>
-            <PnlBadge value={totalPnl} percent={totalPnlPct} />
-          </div>
+    <div className="min-h-screen bg-gray-950 text-white pb-16">
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-bold">ETF Portfolio Tracker</h1>
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="text-sm px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
+          >
+            {loading ? 'Aggiornamento...' : '↻ Refresh'}
+          </button>
         </div>
-      )}
 
-      <ImportCSV onImport={setPortfolio} />
+        {lastUpdate && (
+          <p className="text-xs text-gray-500 mb-4">
+            Aggiornato: {lastUpdate.toLocaleTimeString('it-IT')}
+          </p>
+        )}
 
-      {portfolio.length > 0 && (
-        <div className="mt-4 space-y-3">
-          {portfolio.map(etf => {
-            const p = prices[etf.isin]
-            const currentValue = p ? p.price * etf.shares : null
-            const pnl = currentValue ? currentValue - etf.invested : null
-            const pnlPct = pnl ? (pnl / etf.invested) * 100 : null
-            const dayChange = p ? ((p.price - p.prevClose) / p.prevClose) * 100 : null
-
-            return (
-              <div key={etf.isin} className="bg-gray-900 rounded-lg p-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="font-medium">{etf.name}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">{etf.isin}</div>
-                  </div>
-                  {p && (
-                    <div className="text-right">
-                      <div className="font-semibold">€{p.price.toFixed(2)}</div>
-                      <div className={`text-xs ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {dayChange >= 0 ? '+' : ''}{dayChange.toFixed(2)}% oggi
-                      </div>
-                    </div>
-                  )}
+        {/* Tab: Portfolio */}
+        {activeTab === 'portfolio' && (
+          <>
+            {portfolio.length > 0 && (
+              <div className="bg-gray-900 rounded-lg p-4 mb-4 flex gap-6">
+                <div>
+                  <div className="text-xs text-gray-400">Investito</div>
+                  <div className="font-semibold">€{totalInvested.toFixed(2)}</div>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-400">
-                  <span>Quote: <span className="text-white">{etf.shares.toFixed(4)}</span></span>
-                  <span>PMC: <span className="text-white">€{etf.pmc.toFixed(2)}</span></span>
-                  <span>Investito: <span className="text-white">€{etf.invested.toFixed(2)}</span></span>
-                  {currentValue && <span>Valore: <span className="text-white">€{currentValue.toFixed(2)}</span></span>}
-                  {pnl !== null && <PnlBadge value={pnl} percent={pnlPct} />}
+                <div>
+                  <div className="text-xs text-gray-400">Valore attuale</div>
+                  <div className="font-semibold">€{totalCurrent.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400">P&L totale</div>
+                  <PnlBadge value={totalPnl} percent={totalPnlPct} />
                 </div>
               </div>
-            )
-          })}
-        </div>
-      )}
+            )}
 
-      {portfolio.length > 0 && <AllocationChart portfolio={portfolio} prices={prices} />}
+            {portfolio.length > 0 ? (
+              <div className="space-y-3">
+                {portfolio.map(etf => {
+                  const p = prices[etf.isin]
+                  const currentValue = p ? p.price * etf.shares : null
+                  const pnl = currentValue ? currentValue - etf.invested : null
+                  const pnlPct = pnl ? (pnl / etf.invested) * 100 : null
+                  const dayChange = p ? ((p.price - p.prevClose) / p.prevClose) * 100 : null
+
+                  return (
+                    <div key={etf.isin} className="bg-gray-900 rounded-lg p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <div className="font-medium">{etf.name}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">{etf.isin}</div>
+                        </div>
+                        {p && (
+                          <div className="text-right">
+                            <div className="font-semibold">€{p.price.toFixed(2)}</div>
+                            <div className={`text-xs ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                              {dayChange >= 0 ? '+' : ''}{dayChange.toFixed(2)}% oggi
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-400">
+                        <span>Quote: <span className="text-white">{etf.shares.toFixed(4)}</span></span>
+                        <span>PMC: <span className="text-white">€{etf.pmc.toFixed(2)}</span></span>
+                        <span>Investito: <span className="text-white">€{etf.invested.toFixed(2)}</span></span>
+                        {currentValue && <span>Valore: <span className="text-white">€{currentValue.toFixed(2)}</span></span>}
+                        {pnl !== null && <PnlBadge value={pnl} percent={pnlPct} />}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm">Nessun ETF. Importa un CSV nella tab Ordini.</p>
+            )}
+          </>
+        )}
+
+        {/* Tab: Ordini */}
+        {activeTab === 'ordini' && (
+          <div className="space-y-6">
+            <ImportCSV onImport={setPortfolio} />
+            <OrderHistory />
+          </div>
+        )}
+
+        {/* Tab: Grafici */}
+        {activeTab === 'grafici' && (
+          <div className="space-y-4">
+            <PortfolioChart />
+            {portfolio.length > 0 && <AllocationChart portfolio={portfolio} prices={prices} />}
+          </div>
+        )}
+      </div>
+
+      <TabBar active={activeTab} onChange={setActiveTab} />
     </div>
   )
 }
