@@ -3,7 +3,7 @@ const TICKERS = {
   IE00B5BMR087: "SXR8.DE",
   IE00BKM4GZ66: "IS3N.DE",
   IE00B4ND3602: "PPFB.DE",
-  IE000I8KRLL9: "SEMI.MI",
+  IE000I8KRLL9: "IE000I8KRLL9.SG",
 };
 
 const FALLBACK = {
@@ -11,19 +11,32 @@ const FALLBACK = {
   IE00B5BMR087: "CSPX.MI",
   IE00BKM4GZ66: "EIMI.MI",
   IE00B4ND3602: "SGLN.MI",
-  IE000I8KRLL9: "SEMI.MI",
+  IE000I8KRLL9: "IE000I8KRLL9.SG",
 };
 
 async function fetchPrice(ticker) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-  const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-  const res = await fetch(proxy);
-  const data = await res.json();
-  const meta = data.chart.result[0].meta;
-  return {
-    price: meta.regularMarketPrice,
-    prevClose: meta.chartPreviousClose,
-  };
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`
+  const proxies = [
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  ]
+
+  for (const proxy of proxies) {
+    try {
+      const res = await fetch(proxy)
+      if (!res.ok) continue
+      const data = await res.json()
+      const contents = data.contents ? JSON.parse(data.contents) : data
+      const meta = contents.chart.result[0].meta
+      return {
+        price: meta.regularMarketPrice,
+        prevClose: meta.chartPreviousClose,
+      }
+    } catch {
+      continue
+    }
+  }
+  throw new Error(`No proxy worked for ${ticker}`)
 }
 
 import { useState, useEffect, useCallback } from "react";
