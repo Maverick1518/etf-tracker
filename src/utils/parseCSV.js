@@ -1,3 +1,5 @@
+import { supabase } from './supabase'
+
 export function parseCSV(text) {
   const lines = text.trim().split('\n')
   const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
@@ -28,4 +30,34 @@ export function calcPMC(trades) {
     invested: data.totalAmount,
     pmc: data.totalAmount / data.totalShares,
   }))
+}
+
+export async function syncToSupabase(trades) {
+  await supabase.from('trades').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+  const rows = trades.map(t => ({
+    datetime: t.datetime,
+    date: t.date,
+    type: t.type,
+    category: t.category,
+    name: t.name,
+    symbol: t.symbol,
+    shares: parseFloat(t.shares),
+    price: parseFloat(t.price),
+    amount: parseFloat(t.amount),
+    currency: t.currency,
+  }))
+  const { error } = await supabase.from('trades').insert(rows)
+  if (error) console.error('Supabase sync error:', error)
+}
+
+export async function loadFromSupabase() {
+  const { data, error } = await supabase
+    .from('trades')
+    .select('*')
+    .order('date', { ascending: false })
+  if (error) {
+    console.error('Supabase load error:', error)
+    return null
+  }
+  return data
 }

@@ -1,4 +1,4 @@
-import { parseCSV, calcPMC } from '../utils/parseCSV'
+import { parseCSV, calcPMC, syncToSupabase } from '../utils/parseCSV'
 
 function ImportCSV({ onImport }) {
   function handleFile(e) {
@@ -6,11 +6,12 @@ function ImportCSV({ onImport }) {
     if (!file) return
 
     const reader = new FileReader()
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       const trades = parseCSV(ev.target.result)
       const portfolio = calcPMC(trades)
       localStorage.setItem('etf_trades', JSON.stringify(trades))
       localStorage.setItem('etf_portfolio', JSON.stringify(portfolio))
+      await syncToSupabase(trades)
       onImport(portfolio)
     }
     reader.readAsText(file)

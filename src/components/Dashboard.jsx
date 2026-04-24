@@ -5,6 +5,7 @@ import AllocationChart from './AllocationChart'
 import TabBar from './TabBar'
 import OrderHistory from './OrderHistory'
 import PortfolioChart from './PortfolioChart'
+import { calcPMC, loadFromSupabase } from '../utils/parseCSV'
 
 function PnlBadge({ value, percent }) {
   const positive = value >= 0
@@ -22,7 +23,18 @@ function Dashboard() {
 
   useEffect(() => {
     const saved = localStorage.getItem('etf_portfolio')
-    if (saved) setPortfolio(JSON.parse(saved))
+    if (saved) {
+      setPortfolio(JSON.parse(saved))
+    } else {
+      loadFromSupabase().then(trades => {
+        if (trades && trades.length > 0) {
+          const portfolio = calcPMC(trades)
+          localStorage.setItem('etf_trades', JSON.stringify(trades))
+          localStorage.setItem('etf_portfolio', JSON.stringify(portfolio))
+          setPortfolio(portfolio)
+        }
+      })
+    }
   }, [])
 
   const totalInvested = portfolio.reduce((s, e) => s + e.invested, 0)
@@ -89,20 +101,24 @@ function Dashboard() {
                           <div className="font-medium">{etf.name}</div>
                           <div className="text-xs text-gray-500 mt-0.5">{etf.isin}</div>
                         </div>
-                        {p && (
-                          <div className="text-right">
-                            <div className="font-semibold">€{p.price.toFixed(2)}</div>
-                            <div className={`text-xs ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {dayChange >= 0 ? '+' : ''}{dayChange.toFixed(2)}% oggi
+                        <div className="text-right">
+                          {currentValue
+                            ? <div className="font-semibold text-lg">€{currentValue.toFixed(2)}</div>
+                            : <div className="font-semibold text-lg text-gray-500">—</div>
+                          }
+                          {p && (
+                            <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                              <span className="text-xs text-gray-400">€{p.price.toFixed(2)}</span>
+                              <span className={`text-xs ${dayChange >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                                {dayChange >= 0 ? '+' : ''}{dayChange.toFixed(2)}%
+                              </span>
                             </div>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                       <div className="mt-2 flex flex-wrap gap-4 text-sm text-gray-400">
                         <span>Quote: <span className="text-white">{etf.shares.toFixed(4)}</span></span>
-                        <span>PMC: <span className="text-white">€{etf.pmc.toFixed(2)}</span></span>
                         <span>Investito: <span className="text-white">€{etf.invested.toFixed(2)}</span></span>
-                        {currentValue && <span>Valore: <span className="text-white">€{currentValue.toFixed(2)}</span></span>}
                         {pnl !== null && <PnlBadge value={pnl} percent={pnlPct} />}
                       </div>
                     </div>
