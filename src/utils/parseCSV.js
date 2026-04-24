@@ -33,7 +33,7 @@ export function calcPMC(trades) {
 }
 
 export async function syncToSupabase(trades) {
-  await supabase.from('trades').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+ await supabase.from('trades').delete().gte('id', 0)
   const rows = trades.map(t => ({
     datetime: t.datetime,
     date: t.date,
