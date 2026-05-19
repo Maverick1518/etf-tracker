@@ -122,6 +122,14 @@ function StrategyTab({ portfolio, prices }) {
 
   const suggTotal = suggestions.reduce((s, r) => s + r.amount, 0)
 
+  const numMonths = useMemo(() => {
+    try {
+      const trades = JSON.parse(localStorage.getItem('etf_trades') || '[]')
+      const months = new Set(trades.map(t => t.date?.slice(0, 7)).filter(Boolean))
+      return months.size || 1
+    } catch { return 1 }
+  }, [])
+
   if (portfolio.length === 0) return (
     <p className="text-gray-500 text-sm">Nessun ETF. Importa un CSV nella tab Ordini.</p>
   )
@@ -220,6 +228,32 @@ function StrategyTab({ portfolio, prices }) {
             </div>
           </>
         )}
+      </div>
+
+      {/* Confronto PAC */}
+      <div className="bg-gray-900 rounded-lg p-4">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3">Confronto PAC</h2>
+        <div className="flex gap-2 text-xs text-gray-500 mb-2">
+          <span className="flex-1">ETF</span>
+          <span className="w-20 text-right">Ideale</span>
+          <span className="w-20 text-right">Reale</span>
+          <span className="w-20 text-right">Diff</span>
+        </div>
+        {portfolio.map(etf => {
+          const ideal = Math.round(budget * ((parseFloat(targets[etf.isin]) || 0) / 100))
+          const real = Math.round(etf.invested / numMonths)
+          const diff = ideal - real
+          return (
+            <div key={etf.isin} className="flex gap-2 text-sm py-1.5 border-t border-gray-800">
+              <span className="flex-1 text-gray-300 truncate">{shortName(etf.name)}</span>
+              <span className="w-20 text-right text-white">€{ideal}</span>
+              <span className="w-20 text-right text-white">€{real}</span>
+              <span className={`w-20 text-right font-medium ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-500'}`}>
+                {diff > 0 ? '+' : ''}€{diff}
+              </span>
+            </div>
+          )
+        })}
       </div>
 
     </div>
