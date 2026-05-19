@@ -42,7 +42,10 @@ async function fetchPrice(ticker) {
 import { useState, useEffect, useCallback } from "react";
 
 export function usePrices(portfolio) {
-  const [prices, setPrices] = useState({});
+  const [prices, setPrices] = useState(() => {
+    const saved = localStorage.getItem("etf_prices");
+    return saved ? JSON.parse(saved) : {};
+  });
   const [loading, setLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState(null);
 
@@ -50,19 +53,21 @@ export function usePrices(portfolio) {
     if (!portfolio.length) return;
     setLoading(true);
 
-    const results = {};
-    for (const etf of portfolio) {
-      try {
-        results[etf.isin] = await fetchPrice(TICKERS[etf.isin]);
-      } catch {
+    const cached = JSON.parse(localStorage.getItem("etf_prices") || "{}");
+    const entries = await Promise.all(
+      portfolio.map(async (etf) => {
         try {
-          results[etf.isin] = await fetchPrice(FALLBACK[etf.isin]);
+          return [etf.isin, await fetchPrice(TICKERS[etf.isin])];
         } catch {
-          const saved = JSON.parse(localStorage.getItem("etf_prices") || "{}");
-          results[etf.isin] = saved[etf.isin] || null;
+          try {
+            return [etf.isin, await fetchPrice(FALLBACK[etf.isin])];
+          } catch {
+            return [etf.isin, cached[etf.isin] || null];
+          }
         }
-      }
-    }
+      })
+    );
+    const results = Object.fromEntries(entries);
 
     setPrices(results);
     localStorage.setItem("etf_prices", JSON.stringify(results));
@@ -71,10 +76,7 @@ export function usePrices(portfolio) {
   }, [portfolio]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("etf_prices");
-    if (saved) setPrices(JSON.parse(saved));
-    refresh();
-
+    Promise.resolve().then(refresh);
     const interval = setInterval(refresh, 60 * 60 * 1000);
     return () => clearInterval(interval);
   }, [refresh]);
