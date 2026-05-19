@@ -122,13 +122,47 @@ function StrategyTab({ portfolio, prices }) {
 
   const suggTotal = suggestions.reduce((s, r) => s + r.amount, 0)
 
-  const numMonths = useMemo(() => {
-    try {
-      const trades = JSON.parse(localStorage.getItem('etf_trades') || '[]')
-      const months = new Set(trades.map(t => t.date?.slice(0, 7)).filter(Boolean))
-      return months.size || 1
-    } catch { return 1 }
-  }, [])
+  const [pacReale, setPacReale] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('etf_pac_reale') || 'null') || {} } catch { return {} }
+  })
+
+  useEffect(() => {
+    localStorage.setItem('etf_pac_reale', JSON.stringify(pacReale))
+  }, [pacReale])
+
+  const [copied, setCopied] = useState(false)
+
+  const totalInvested = portfolio.reduce((s, e) => s + e.invested, 0)
+  const totalPnl = totalCurrent - totalInvested
+  const totalPnlPct = totalInvested ? (totalPnl / totalInvested) * 100 : 0
+
+  function handleCopy() {
+    const lines = [
+      `Analisi Portfolio ETF — ${new Date().toLocaleDateString('it-IT')}`,
+      ``,
+      `Valore totale: €${totalCurrent.toFixed(2)}`,
+      `Investito totale: €${totalInvested.toFixed(2)}`,
+      `P&L totale: ${totalPnl >= 0 ? '+' : ''}€${totalPnl.toFixed(2)} (${totalPnl >= 0 ? '+' : ''}${totalPnlPct.toFixed(2)}%)`,
+      ``,
+      `ETF nel portafoglio:`,
+      ...portfolio.map(etf => {
+        const p = prices[etf.isin]
+        const cur = p ? p.price * etf.shares : etf.invested
+        const pnl = cur - etf.invested
+        const pnlPct = etf.invested ? (pnl / etf.invested) * 100 : 0
+        const wCur = currentWeights[etf.isin]?.toFixed(1) ?? '0.0'
+        const wTgt = parseFloat(targets[etf.isin] || 0).toFixed(1)
+        const pr = parseFloat(pacReale[etf.isin]) || 0
+        const pi = Math.round(budget * ((parseFloat(targets[etf.isin]) || 0) / 100))
+        return `- ${shortName(etf.name)}: investito €${etf.invested.toFixed(0)}, valore €${cur.toFixed(0)}, P&L ${pnl >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%, peso attuale ${wCur}%, peso target ${wTgt}%, PAC reale €${pr}/mese, PAC ideale €${pi}/mese`
+      }),
+      ``,
+      `Analizza questo portafoglio ETF. Identifica: rischi di concentrazione, sovra/sotto-esposizioni rispetto ai pesi target, coerenza del PAC reale con quello ideale. Suggerisci azioni concrete di ribilanciamento e, se necessario, correggi l'allocazione del budget mensile per avvicinarti ai pesi target nel tempo.`,
+    ]
+    navigator.clipboard.writeText(lines.join('\n'))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   if (portfolio.length === 0) return (
     <p className="text-gray-500 text-sm">Nessun ETF. Importa un CSV nella tab Ordini.</p>
@@ -236,24 +270,41 @@ function StrategyTab({ portfolio, prices }) {
         <div className="flex gap-2 text-xs text-gray-500 mb-2">
           <span className="flex-1">ETF</span>
           <span className="w-20 text-right">Ideale</span>
-          <span className="w-20 text-right">Reale</span>
+          <span className="w-16 text-right">Reale</span>
           <span className="w-20 text-right">Diff</span>
         </div>
         {portfolio.map(etf => {
           const ideal = Math.round(budget * ((parseFloat(targets[etf.isin]) || 0) / 100))
-          const real = Math.round(etf.invested / numMonths)
+          const real = parseFloat(pacReale[etf.isin]) || 0
           const diff = ideal - real
           return (
-            <div key={etf.isin} className="flex gap-2 text-sm py-1.5 border-t border-gray-800">
+            <div key={etf.isin} className="flex gap-2 items-center text-sm py-1.5 border-t border-gray-800">
               <span className="flex-1 text-gray-300 truncate">{shortName(etf.name)}</span>
               <span className="w-20 text-right text-white">€{ideal}</span>
-              <span className="w-20 text-right text-white">€{real}</span>
+              <input
+                type="number"
+                min="0"
+                value={pacReale[etf.isin] ?? 0}
+                onChange={e => setPacReale(prev => ({ ...prev, [etf.isin]: e.target.value }))}
+                className="bg-gray-800 text-white w-16 px-2 py-1 rounded border border-gray-700 text-right focus:outline-none focus:border-indigo-500"
+              />
               <span className={`w-20 text-right font-medium ${diff > 0 ? 'text-green-400' : diff < 0 ? 'text-red-400' : 'text-gray-500'}`}>
-                {diff > 0 ? '+' : ''}€{diff}
+                {diff > 0 ? '+' : ''}€{Math.round(diff)}
               </span>
             </div>
           )
         })}
+      </div>
+
+      {/* Consulente AI */}
+      <div className="bg-gray-900 rounded-lg p-4">
+        <h2 className="text-sm font-semibold text-gray-400 mb-3">Consulente AI</h2>
+        <button
+          onClick={handleCopy}
+          className="w-full py-2 px-4 rounded bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+        >
+          {copied ? 'Copiato!' : 'Copia analisi per Claude'}
+        </button>
       </div>
 
     </div>
