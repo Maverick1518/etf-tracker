@@ -5,7 +5,7 @@ import TabBar from "./TabBar";
 import OrderHistory from "./OrderHistory";
 import AnalysisTab from "./AnalysisTab";
 import StrategyTab from "./StrategyTab";
-import { calcPMC, loadFromSupabase } from "../utils/parseCSV";
+import { calcPMC } from "../utils/parseCSV";
 
 function PnlBadge({ value, percent }) {
   const positive = value >= 0;
@@ -41,15 +41,8 @@ function Dashboard() {
   const canPull = useRef(false);
 
   useEffect(() => {
-    if (localStorage.getItem("etf_portfolio")) return;
-    loadFromSupabase().then((trades) => {
-      if (trades && trades.length > 0) {
-        const p = calcPMC(trades);
-        localStorage.setItem("etf_trades", JSON.stringify(trades));
-        localStorage.setItem("etf_portfolio", JSON.stringify(p));
-        setPortfolio(p);
-      }
-    });
+    const saved = localStorage.getItem("etf_portfolio");
+    if (saved) setPortfolio(JSON.parse(saved));
   }, []);
 
   const totalInvested = portfolio.reduce((s, e) => s + e.invested, 0);
