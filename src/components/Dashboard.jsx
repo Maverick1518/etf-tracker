@@ -48,12 +48,6 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    if (portfolio.length > 0 && Object.keys(prices).length > 0) {
-      saveSnapshot(portfolio, prices);
-    }
-  }, [prices, portfolio]);
-
-  useEffect(() => {
     function handleKeyDown(e) {
       if (e.ctrlKey && e.shiftKey && (e.key === "D" || e.key === "d")) {
         e.preventDefault();
@@ -71,6 +65,12 @@ function Dashboard() {
   }, 0);
   const totalPnl = totalCurrent - totalInvested;
   const totalPnlPct = totalInvested ? (totalPnl / totalInvested) * 100 : 0;
+
+  useEffect(() => {
+    if (portfolio.length > 0 && Object.keys(prices).length > 0) {
+      saveSnapshot(portfolio, prices, totalInvested);
+    }
+  }, [prices, portfolio, totalInvested]);
 
   const handleTouchStart = (e) => {
     touchStartX.current = e.touches[0].clientX;
