@@ -1,11 +1,30 @@
+function parseCSVLine(line) {
+  const fields = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      inQuotes = !inQuotes;
+    } else if (ch === ',' && !inQuotes) {
+      fields.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  fields.push(current.trim());
+  return fields;
+}
+
 export function parseCSV(text) {
   const lines = text.trim().split("\n");
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+  const headers = parseCSVLine(lines[0]);
 
   return lines
     .slice(1)
     .map((line) => {
-      const values = line.split(",").map((v) => v.trim().replace(/"/g, ""));
+      const values = parseCSVLine(line);
       return Object.fromEntries(headers.map((h, i) => [h, values[i]]));
     })
     .filter((row) => row.type === "BUY" && row.category === "TRADING");
