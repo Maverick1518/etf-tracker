@@ -53,7 +53,6 @@ export function buildSnapshotsFromTrades(trades) {
       const t = sorted[idx];
       const isin = t.symbol;
       const shares = parseFloat(t.shares);
-      const amount = Math.abs(parseFloat(t.amount));
 
       const amt = parseFloat(t.amount);
       const price = parseFloat(t.price);
@@ -68,7 +67,14 @@ export function buildSnapshotsFromTrades(trades) {
 
       cumulativeShares[isin] = (cumulativeShares[isin] || 0) + shares;
       if (tradePrice != null) lastPrice[isin] = tradePrice;
-      cumulativeInvested += amount;
+
+      let investedAmt = Math.abs(parseFloat(t.amount));
+      if (isNaN(investedAmt)) {
+        const sh = parseFloat(t.shares);
+        const pr = parseFloat(t.price);
+        investedAmt = !isNaN(sh) && !isNaN(pr) ? sh * pr : 0;
+      }
+      cumulativeInvested += investedAmt;
 
       idx++;
     }
