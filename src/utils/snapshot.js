@@ -54,12 +54,20 @@ export function buildSnapshotsFromTrades(trades) {
       const isin = t.symbol;
       const shares = parseFloat(t.shares);
       const amount = Math.abs(parseFloat(t.amount));
-      const validAmount =
-        t.amount !== "" && !isNaN(parseFloat(t.amount)) && parseFloat(t.shares) > 0;
-      const price = validAmount ? amount / shares : null;
+
+      const amt = parseFloat(t.amount);
+      const price = parseFloat(t.price);
+      let tradePrice;
+      if (!isNaN(amt) && amt !== 0) {
+        tradePrice = Math.abs(amt) / shares;
+      } else if (!isNaN(price) && price > 0) {
+        tradePrice = price;
+      } else {
+        tradePrice = null;
+      }
 
       cumulativeShares[isin] = (cumulativeShares[isin] || 0) + shares;
-      if (price != null) lastPrice[isin] = price;
+      if (tradePrice != null) lastPrice[isin] = tradePrice;
       cumulativeInvested += amount;
 
       idx++;
