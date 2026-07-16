@@ -46,6 +46,7 @@ export function buildSnapshotsFromTrades(trades) {
   const lastPrice = {};
   const snapshots = [];
   let idx = 0;
+  let cumulativeInvested = 0;
 
   for (const month of months) {
     while (idx < sorted.length && monthKey(sorted[idx].date) === month) {
@@ -57,6 +58,7 @@ export function buildSnapshotsFromTrades(trades) {
 
       cumulativeShares[isin] = (cumulativeShares[isin] || 0) + shares;
       if (price != null) lastPrice[isin] = price;
+      cumulativeInvested += amount;
 
       idx++;
     }
@@ -67,7 +69,7 @@ export function buildSnapshotsFromTrades(trades) {
       return sum + (shares > 0 && price ? shares * price : 0);
     }, 0);
 
-    snapshots.push({ date: lastDayOfMonthISO(month), value: totalValue });
+    snapshots.push({ date: lastDayOfMonthISO(month), value: totalValue, invested: cumulativeInvested });
   }
 
   return snapshots;

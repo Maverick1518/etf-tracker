@@ -243,14 +243,43 @@ function Chart({ data, loading, error }) {
 // ── Growth chart ──────────────────────────────────────────────────────────────
 function GrowthChart() {
   const snapshots = useMemo(() => getSnapshots(), [])
+  const [mode, setMode] = useState('value') // 'value' | 'profit'
+
   const data = useMemo(
-    () => snapshots.map(s => ({ date: new Date(s.date).getTime(), price: s.value })),
-    [snapshots]
+    () => snapshots.map(s => ({
+      date: new Date(s.date).getTime(),
+      price: mode === 'profit' ? s.value - s.invested : s.value,
+    })),
+    [snapshots, mode]
   )
 
   return (
     <div className="bg-gray-900 rounded-lg p-4">
       <h3 className="text-sm font-medium text-gray-300 mb-3">Crescita portafoglio</h3>
+
+      <div className="flex gap-1 mb-4">
+        <button
+          onClick={() => setMode('value')}
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            mode === 'value'
+              ? 'bg-gray-700 text-white'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          Valore totale
+        </button>
+        <button
+          onClick={() => setMode('profit')}
+          className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+            mode === 'profit'
+              ? 'bg-gray-700 text-white'
+              : 'text-gray-500 hover:text-gray-300'
+          }`}
+        >
+          Profitto netto
+        </button>
+      </div>
+
       {snapshots.length < 2 ? (
         <div className="h-52 flex items-center justify-center text-gray-500 text-sm">
           Dati insufficienti
