@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import AllocationChart from './AllocationChart'
+import { getSnapshots } from '../utils/snapshot'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const TICKERS = {
@@ -239,6 +240,28 @@ function Chart({ data, loading, error }) {
   )
 }
 
+// ── Growth chart ──────────────────────────────────────────────────────────────
+function GrowthChart() {
+  const snapshots = useMemo(() => getSnapshots(), [])
+  const data = useMemo(
+    () => snapshots.map(s => ({ date: new Date(s.date).getTime(), price: s.value })),
+    [snapshots]
+  )
+
+  return (
+    <div className="bg-gray-900 rounded-lg p-4">
+      <h3 className="text-sm font-medium text-gray-300 mb-3">Crescita portafoglio</h3>
+      {snapshots.length < 2 ? (
+        <div className="h-52 flex items-center justify-center text-gray-500 text-sm">
+          Dati insufficienti
+        </div>
+      ) : (
+        <Chart data={data} loading={false} error={null} />
+      )}
+    </div>
+  )
+}
+
 // ── Main tab ──────────────────────────────────────────────────────────────────
 function AnalysisTab({ portfolio, prices }) {
   const available = useMemo(
@@ -250,7 +273,7 @@ function AnalysisTab({ portfolio, prices }) {
   // derive effective isin: explicit selection → first available → null
   const isin = (selectedIsin && TICKERS[selectedIsin]) ? selectedIsin : (available[0]?.isin ?? null)
 
-  const [tfIdx, setTfIdx] = useState(1)
+  const [tfIdx, setTfIdx] = useState(3)
   const [chartData, setChartData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -332,6 +355,8 @@ function AnalysisTab({ portfolio, prices }) {
       </div>
 
       <AllocationChart portfolio={portfolio} prices={prices} />
+
+      <GrowthChart />
     </div>
   )
 }

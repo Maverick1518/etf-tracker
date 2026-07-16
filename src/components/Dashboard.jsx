@@ -6,6 +6,7 @@ import OrderHistory from "./OrderHistory";
 import AnalysisTab from "./AnalysisTab";
 import StrategyTab from "./StrategyTab";
 import { calcPMC } from "../utils/parseCSV";
+import { saveSnapshot } from "../utils/snapshot";
 
 function PnlBadge({ value, percent }) {
   const positive = value >= 0;
@@ -44,6 +45,12 @@ function Dashboard() {
     const saved = localStorage.getItem("etf_portfolio");
     if (saved) setPortfolio(JSON.parse(saved));
   }, []);
+
+  useEffect(() => {
+    if (portfolio.length > 0 && Object.keys(prices).length > 0) {
+      saveSnapshot(portfolio, prices);
+    }
+  }, [prices, portfolio]);
 
   const totalInvested = portfolio.reduce((s, e) => s + e.invested, 0);
   const totalCurrent = portfolio.reduce((s, e) => {
