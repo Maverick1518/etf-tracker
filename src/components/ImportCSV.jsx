@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { parseCSV, calcPMC } from '../utils/parseCSV'
+import { buildSnapshotsFromTrades } from '../utils/snapshot'
 
 const LAST_IMPORT_KEY = 'etf_last_import'
 
@@ -32,6 +33,9 @@ function ImportCSV({ onImport }) {
       const portfolio = calcPMC(trades)
       localStorage.setItem('etf_trades', JSON.stringify(trades))
       localStorage.setItem('etf_portfolio', JSON.stringify(portfolio))
+
+      const snapshots = buildSnapshotsFromTrades(trades)
+      localStorage.setItem('etf_snapshots', JSON.stringify(snapshots))
 
       const info = {
         filename: pendingFile.name,

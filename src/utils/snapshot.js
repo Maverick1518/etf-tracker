@@ -25,3 +25,50 @@ export function getSnapshots() {
   const saved = localStorage.getItem(SNAPSHOTS_KEY);
   return saved ? JSON.parse(saved) : [];
 }
+
+function monthKey(dateStr) {
+  return dateStr.slice(0, 7); // YYYY-MM
+}
+
+function lastDayOfMonthISO(monthStr) {
+  const [y, m] = monthStr.split("-").map(Number);
+  return new Date(y, m, 0).toISOString().slice(0, 10);
+}
+
+export function buildSnapshotsFromTrades(trades) {
+  const sorted = [...trades]
+    .filter((t) => t.date)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const months = [...new Set(sorted.map((t) => monthKey(t.date)))];
+
+  const cumulativeShares = {};
+  const lastPrice = {};
+  const snapshots = [];
+  let idx = 0;
+
+  for (const month of months) {
+    while (idx < sorted.length && monthKey(sorted[idx].date) === month) {
+      const t = sorted[idx];
+      const isin = t.symbol;
+      const shares = parseFloat(t.shares);
+      const amount = Math.abs(parseFloat(t.amount));
+      const price = shares > 0 ? amount / shares : null;
+
+      cumulativeShares[isin] = (cumulativeShares[isin] || 0) + shares;
+      if (price != null) lastPrice[isin] = price;
+
+      idx++;
+    }
+
+    const totalValue = Object.keys(cumulativeShares).reduce((sum, isin) => {
+      const shares = cumulativeShares[isin];
+      const price = lastPrice[isin];
+      return sum + (shares > 0 && price ? shares * price : 0);
+    }, 0);
+
+    snapshots.push({ date: lastDayOfMonthISO(month), value: totalValue });
+  }
+
+  return snapshots;
+}
