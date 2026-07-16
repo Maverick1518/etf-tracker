@@ -299,7 +299,7 @@ function Dashboard() {
                             </div>
                           </div>
                           <div className="text-right">
-                            {currentValue ? (
+                            {Number.isFinite(currentValue) ? (
                               <div className="font-semibold text-lg">
                                 €{currentValue.toFixed(2)}
                               </div>
@@ -311,14 +311,18 @@ function Dashboard() {
                             {p && (
                               <div className="flex items-center justify-end gap-1.5 mt-0.5">
                                 <span className="text-xs text-gray-400">
-                                  €{p.price.toFixed(2)}
+                                  {Number.isFinite(p.price)
+                                    ? `€${p.price.toFixed(2)}`
+                                    : "—"}
                                 </span>
-                                <span
-                                  className={`text-xs ${dayChange >= 0 ? "text-green-400" : "text-red-400"}`}
-                                >
-                                  {dayChange >= 0 ? "+" : ""}
-                                  {dayChange.toFixed(2)}%
-                                </span>
+                                {Number.isFinite(dayChange) && (
+                                  <span
+                                    className={`text-xs ${dayChange >= 0 ? "text-green-400" : "text-red-400"}`}
+                                  >
+                                    {dayChange >= 0 ? "+" : ""}
+                                    {dayChange.toFixed(2)}%
+                                  </span>
+                                )}
                               </div>
                             )}
                           </div>
@@ -327,13 +331,17 @@ function Dashboard() {
                           <span>
                             Quote:{" "}
                             <span className="text-white">
-                              {etf.shares.toFixed(4)}
+                              {Number.isFinite(etf.shares)
+                                ? etf.shares.toFixed(4)
+                                : "—"}
                             </span>
                           </span>
                           <span>
                             Investito:{" "}
                             <span className="text-white">
-                              €{etf.invested.toFixed(2)}
+                              {Number.isFinite(etf.invested)
+                                ? `€${etf.invested.toFixed(2)}`
+                                : "—"}
                             </span>
                           </span>
                           {pnl !== null && pnlPct !== null && (

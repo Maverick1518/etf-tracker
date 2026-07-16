@@ -18,7 +18,7 @@ function parseCSVLine(line) {
 }
 
 export function parseCSV(text) {
-  const lines = text.trim().split("\n");
+  const lines = text.trim().split(/\r?\n/);
   const headers = parseCSVLine(lines[0]);
 
   return lines
