@@ -9,6 +9,8 @@ import { calcPMC } from "../utils/parseCSV";
 import { saveSnapshot } from "../utils/snapshot";
 
 function PnlBadge({ value, percent }) {
+  if (value == null || percent == null) return null;
+
   const positive = value >= 0;
   return (
     <span
@@ -216,7 +218,10 @@ function Dashboard() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">ETF Portfolio Tracker</h1>
             <button
-              onClick={() => { setIsRefreshing(false); refresh(); }}
+              onClick={() => {
+                setIsRefreshing(false);
+                refresh();
+              }}
               disabled={loading}
               className="text-sm px-3 py-1.5 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50"
             >
@@ -331,7 +336,7 @@ function Dashboard() {
                               €{etf.invested.toFixed(2)}
                             </span>
                           </span>
-                          {pnl !== null && (
+                          {pnl !== null && pnlPct !== null && (
                             <PnlBadge value={pnl} percent={pnlPct} />
                           )}
                         </div>
@@ -347,12 +352,17 @@ function Dashboard() {
 
               {showDebug && (
                 <div className="hidden md:block bg-gray-900 border border-yellow-500/40 rounded-lg p-4 mt-4 text-xs">
-                  <div className="font-semibold text-yellow-400 mb-2">Debug Ticker</div>
+                  <div className="font-semibold text-yellow-400 mb-2">
+                    Debug Ticker
+                  </div>
                   <div className="space-y-1.5">
                     {portfolio.map((etf) => {
                       const p = prices[etf.isin];
                       return (
-                        <div key={etf.isin} className="flex flex-wrap gap-x-3 text-gray-400">
+                        <div
+                          key={etf.isin}
+                          className="flex flex-wrap gap-x-3 text-gray-400"
+                        >
                           <span className="text-white">{etf.isin}</span>
                           <span>ticker: {TICKERS[etf.isin] ?? "—"}</span>
                           <span>price: {p ? p.price : "—"}</span>
