@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import ImportCSV from "./ImportCSV";
-import { usePrices } from "../hooks/usePrices";
+import { usePrices, TICKERS } from "../hooks/usePrices";
 import TabBar from "./TabBar";
 import OrderHistory from "./OrderHistory";
 import AnalysisTab from "./AnalysisTab";
@@ -34,6 +34,7 @@ function Dashboard() {
   const { prices, loading, lastUpdate, refresh } = usePrices(portfolio);
   const [pullY, setPullY] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   const contentRef = useRef(null);
   const touchStartX = useRef(null);
@@ -51,6 +52,17 @@ function Dashboard() {
       saveSnapshot(portfolio, prices);
     }
   }, [prices, portfolio]);
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.ctrlKey && e.shiftKey && (e.key === "D" || e.key === "d")) {
+        e.preventDefault();
+        setShowDebug((v) => !v);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const totalInvested = portfolio.reduce((s, e) => s + e.invested, 0);
   const totalCurrent = portfolio.reduce((s, e) => {
@@ -331,6 +343,25 @@ function Dashboard() {
                 <p className="text-gray-500 text-sm">
                   Nessun ETF. Importa un CSV nella tab Ordini.
                 </p>
+              )}
+
+              {showDebug && (
+                <div className="hidden md:block bg-gray-900 border border-yellow-500/40 rounded-lg p-4 mt-4 text-xs">
+                  <div className="font-semibold text-yellow-400 mb-2">Debug Ticker</div>
+                  <div className="space-y-1.5">
+                    {portfolio.map((etf) => {
+                      const p = prices[etf.isin];
+                      return (
+                        <div key={etf.isin} className="flex flex-wrap gap-x-3 text-gray-400">
+                          <span className="text-white">{etf.isin}</span>
+                          <span>ticker: {TICKERS[etf.isin] ?? "—"}</span>
+                          <span>price: {p ? p.price : "—"}</span>
+                          <span>prevClose: {p ? p.prevClose : "—"}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </>
           )}

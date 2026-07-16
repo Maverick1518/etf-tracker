@@ -1,4 +1,4 @@
-const TICKERS = {
+export const TICKERS = {
   IE00B4L5Y983: "EUNL.DE",
   IE00B5BMR087: "SXR8.DE",
   IE00BKM4GZ66: "IS3N.DE",
