@@ -54,7 +54,9 @@ export function buildSnapshotsFromTrades(trades) {
       const isin = t.symbol;
       const shares = parseFloat(t.shares);
       const amount = Math.abs(parseFloat(t.amount));
-      const price = shares > 0 ? amount / shares : null;
+      const validAmount =
+        t.amount !== "" && !isNaN(parseFloat(t.amount)) && parseFloat(t.shares) > 0;
+      const price = validAmount ? amount / shares : null;
 
       cumulativeShares[isin] = (cumulativeShares[isin] || 0) + shares;
       if (price != null) lastPrice[isin] = price;

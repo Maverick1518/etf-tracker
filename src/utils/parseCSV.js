@@ -38,7 +38,12 @@ export function calcPMC(trades) {
     if (!byISIN[isin])
       byISIN[isin] = { totalAmount: 0, totalShares: 0, name: t.name };
     console.log('trade amount raw:', t.symbol, JSON.stringify(t.amount), typeof t.amount);
-    const amt = parseFloat(t.amount);
+    let amt = parseFloat(t.amount);
+    if (isNaN(amt)) {
+      const shares = parseFloat(t.shares);
+      const price = parseFloat(t.price);
+      if (!isNaN(shares) && !isNaN(price)) amt = shares * price;
+    }
     if (!isNaN(amt)) byISIN[isin].totalAmount += Math.abs(amt);
     byISIN[isin].totalShares += parseFloat(t.shares);
   });
